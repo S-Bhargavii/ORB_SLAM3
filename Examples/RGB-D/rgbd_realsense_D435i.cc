@@ -281,9 +281,12 @@ int main(int argc, char **argv) {
     };
 
 
-
-    pipe_profile = pipe.start(cfg, imu_callback);
-
+    try {
+        pipe_profile = pipe.start(cfg, imu_callback);
+    } catch (const rs2::error & e) {
+        std::cerr << "Realsense error: " << e.what() << std::endl;
+        return -1;
+    }
 
 
     rs2::stream_profile cam_stream = pipe_profile.get_stream(RS2_STREAM_COLOR);
@@ -317,7 +320,7 @@ int main(int argc, char **argv) {
     rs2::frameset fs;
 
     while (!SLAM.isShutDown())
-    {
+    {   
         {
             std::unique_lock<std::mutex> lk(imu_mutex);
             if(!image_ready)

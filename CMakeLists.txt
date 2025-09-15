@@ -151,6 +151,11 @@ if(realsense2_FOUND)
     target_link_libraries(rgbd_realsense_D435i ${PROJECT_NAME})
 endif()
 
+if(realsense2_FOUND)
+    add_executable(test_rgbd_realsense_D435i
+            Examples/RGB-D/test_rgbd_realsense_D435i.cc)
+    target_link_libraries(test_rgbd_realsense_D435i ${PROJECT_NAME})
+endif()
 
 # RGB-D inertial examples
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/RGB-D-Inertial)
