@@ -555,9 +555,10 @@ void System::Shutdown()
 
     if(!mStrSaveAtlasToFile.empty())
     {
-        cout << "SAving Atlas to file" << endl;
+        cout << "Saving Atlas to file" << endl;
         Verbose::PrintMess("Atlas saving to file " + mStrSaveAtlasToFile, Verbose::VERBOSITY_NORMAL);
         SaveAtlas(FileType::BINARY_FILE);
+        cout << "Saved Atlas to file successfully!" << endl;
     }
 
     /*if(mpViewer)
