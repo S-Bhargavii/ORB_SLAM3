@@ -2036,7 +2036,7 @@ void Tracking::Track()
         else
         {
             // Localization Mode: Local Mapping is deactivated (TODO Not available in inertial mode)
-            if(mState==LOST)
+            if(mState == LOST || (RECENTLY_LOST && !bOK && mCurrentFrame.mTimeStamp-mTimeStampLost>time_recently_lost))
             {
                 if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
                     Verbose::PrintMess("IMU. State LOST", Verbose::VERBOSITY_NORMAL);

@@ -319,7 +319,10 @@ int main(int argc, char **argv) {
     double t_track = 0.f;
     rs2::frameset fs;
 
-    while (!SLAM.isShutDown())
+    // to set localisation mode, uncomment below line 
+    // SLAM.ActivateLocalizationMode();
+
+    while (b_continue_session && !SLAM.isShutDown())
     {   
         {
             std::unique_lock<std::mutex> lk(imu_mutex);

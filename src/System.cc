@@ -168,7 +168,15 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         loadedAtlas = true;
 
-        mpAtlas->CreateNewMap();
+        // mpAtlas->CreateNewMap();
+
+        std::vector<Map*> map_vector = mpAtlas->GetAllMaps();
+        if (map_vector.empty()) {
+            mpAtlas->CreateNewMap();
+        } else {
+            // Use the first existing map instead of creating a new one
+            mpAtlas->ChangeMap(map_vector.at(0));
+        }
 
         //clock_t timeElapsed = clock() - start;
         //unsigned msElapsed = timeElapsed / (CLOCKS_PER_SEC / 1000);
@@ -547,6 +555,7 @@ void System::Shutdown()
 
     if(!mStrSaveAtlasToFile.empty())
     {
+        cout << "SAving Atlas to file" << endl;
         Verbose::PrintMess("Atlas saving to file " + mStrSaveAtlasToFile, Verbose::VERBOSITY_NORMAL);
         SaveAtlas(FileType::BINARY_FILE);
     }
