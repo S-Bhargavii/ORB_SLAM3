@@ -1,18 +1,19 @@
 %YAML:1.0
 
 #--------------------------------------------------------------------------------------------
-# Camera Parameters. Adjust them!
+# Camera Parameters
 #--------------------------------------------------------------------------------------------
 File.version: "1.0"
 
 Camera.type: "PinHole"
+System.SaveAtlasToFile: "atlasdemo-map7-postloc" 
+System.LoadAtlasFromFile: "atlasdemo-map6" 
 
 # Right Camera calibration and distortion parameters (OpenCV)
-Camera1.fx: 617.201
-Camera1.fy: 617.362
-Camera1.cx: 324.637
-Camera1.cy: 242.462
-
+Camera1.fx: 607.503
+Camera1.fy: 607.507
+Camera1.cx: 311.263
+Camera1.cy: 239.712
 
 # distortion parameters
 Camera1.k1: 0.0

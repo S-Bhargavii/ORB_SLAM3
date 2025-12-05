@@ -106,6 +106,7 @@ int main(int argc, char **argv) {
              << endl;
         return 1;
     }
+    int start_frame_count = 0;
 
     string file_name;
     bool bFileName = false;
@@ -152,7 +153,8 @@ int main(int argc, char **argv) {
             get_sensor_option(sensor);
             if (index == 2){
                 // RGB camera
-                sensor.set_option(RS2_OPTION_EXPOSURE,80.f);
+                // sensor.set_option(RS2_OPTION_EXPOSURE,80.f);
+                sensor.set_option(RS2_OPTION_EXPOSURE, 100.0f);
 
             }
 
@@ -241,28 +243,6 @@ int main(int argc, char **argv) {
             //Align depth and rgb takes long time, move it out of the interruption to avoid losing IMU measurements
             fsSLAM = fs;
 
-            /*
-            //Get processed aligned frame
-            auto processed = align.process(fs);
-
-
-            // Trying to get both other and aligned depth frames
-            rs2::video_frame color_frame = processed.first(align_to);
-            rs2::depth_frame depth_frame = processed.get_depth_frame();
-            //If one of them is unavailable, continue iteration
-            if (!depth_frame || !color_frame) {
-                cout << "Not synchronized depth and image\n";
-                return;
-            }
-
-
-            imCV = cv::Mat(cv::Size(width_img, height_img), CV_8UC3, (void*)(color_frame.get_data()), cv::Mat::AUTO_STEP);
-            depthCV = cv::Mat(cv::Size(width_img, height_img), CV_16U, (void*)(depth_frame.get_data()), cv::Mat::AUTO_STEP);
-
-            cv::Mat depthCV_8U;
-            depthCV.convertTo(depthCV_8U,CV_8U,0.01);
-            cv::imshow("depth image", depthCV_8U);*/
-
             timestamp_image = fs.get_timestamp()*1e-3;
             image_ready = true;
 
@@ -284,7 +264,7 @@ int main(int argc, char **argv) {
     try {
         pipe_profile = pipe.start(cfg, imu_callback);
     } catch (const rs2::error & e) {
-        std::cerr << "Realsense error: " << e.what() << std::endl;
+        // std::cerr << "Realsense error: " << e.what() << std::endl;
         return -1;
     }
 
@@ -321,6 +301,7 @@ int main(int argc, char **argv) {
 
     // to set localisation mode, uncomment below line 
     // SLAM.ActivateLocalizationMode();
+    bool isLocalizationMode = SLAM.mbActivateLocalizationMode; 
 
     while (b_continue_session && !SLAM.isShutDown())
     {   
@@ -337,8 +318,8 @@ int main(int argc, char **argv) {
 
             fs = fsSLAM;
 
-            if(count_im_buffer>1)
-                cout << count_im_buffer -1 << " dropped frs\n";
+            // if(count_im_buffer>1)
+            //     cout << count_im_buffer -1 << " dropped frs\n";
             count_im_buffer = 0;
 
             timestamp = timestamp_image;
@@ -394,8 +375,51 @@ int main(int argc, char **argv) {
         std::chrono::monotonic_clock::time_point t_Start_Track = std::chrono::monotonic_clock::now();
     #endif
 #endif
+        start_frame_count += 1;
+        try {
+            // auto t_start = std::chrono::steady_clock::now();
+
+            Sophus::SE3f Tcw = SLAM.TrackRGBD(im, depth, timestamp); // returns the camera's pose
+            int state = SLAM.GetTrackingState();
+
+            if (!isLocalizationMode || state == 2){
+                // auto t_end = std::chrono::steady_clock::now();
+                // auto processing_time = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
+                
+                Eigen::Matrix4f mat = Tcw.matrix();
+
+                if (mat.allFinite()) {
+                    Sophus::SE3f Twc = Tcw.inverse();
+                    Eigen::Vector3f translation = Twc.translation();
+
+                    // Simple struct instead of geometry_msgs::Point
+                    struct Point {
+                        float x, y, z;
+                    };
+
+                    Point pos_msg;
+                    pos_msg.x = translation[0];
+                    pos_msg.y = translation[1];
+                    pos_msg.z = translation[2];
+                    
+                    if (start_frame_count % 6 == 0){
+                        std::cout << std::fixed << std::setprecision(3); // 3 decimal places
+                        std::cout << "Current pose -> "
+                            << "x: " << pos_msg.x 
+                            << ", y: " << pos_msg.y 
+                            << ", z: " << pos_msg.z 
+                            << std::endl;
+                    }
+                }
+            } else{
+                std::cout << "Pose not reliable" << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cout << "Exception during SE3 inversion: " << e.what() << std::endl;
+        }
+
         // Pass the image to the SLAM system
-        SLAM.TrackRGBD(im, depth, timestamp); //, vImuMeas); depthCV
+        // SLAM.TrackRGBD(im, depth, timestamp); //, vImuMeas); depthCV
 
 #ifdef REGISTER_TIMES
     #ifdef COMPILEDWITHC11
@@ -407,7 +431,12 @@ int main(int argc, char **argv) {
         SLAM.InsertTrackTime(t_track);
 #endif
     }
-    cout << "System shutdown!\n";
+
+    cout << "Start System shutdown!\n";
+    SLAM.Shutdown();
+    SLAM.SaveKeyFrameTrajectoryTUM("keyframe_trajectory.txt");
+    SLAM.SaveTrajectoryTUM("trajectory.txt");
+    cout << "Finished System Shutdown!\n";
 }
 
 rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams)

@@ -30,6 +30,11 @@ def read_slam_output(process):
                 parts = line.split(",")
                 x = float(parts[0].split(":")[-1].strip())
                 y = float(parts[1].split(":")[-1].strip())
+
+                # applying transform
+                x = int(x / 0.08)
+                y = int(-y / 0.08)
+                
                 # timestamp = float(parts[3].split(":")[-1].strip())
                 
                 # pose_msg = {"x": x, "y": y, "timestamp":timestamp}
