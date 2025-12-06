@@ -60,7 +60,8 @@ def on_message(client, userdata, msg):
                 slam_process = subprocess.Popen(
                     ["./Examples/RGB-D/rgbd_realsense_D435i",
                      "/home/bhargavi/ORB_SLAM3/Vocabulary/ORBvoc.txt",
-                     "/home/bhargavi/ORB_SLAM3/Examples/RGB-D/RealSense_D435i.yaml"],
+                     "/home/bhargavi/ORB_SLAM3/Examples/RGB-D/RealSense_D435i.yaml",
+                     "loc"],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT
                 )

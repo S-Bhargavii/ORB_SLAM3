@@ -6,8 +6,8 @@
 File.version: "1.0"
 
 Camera.type: "PinHole"
-System.SaveAtlasToFile: "atlasdemo-map7-postloc" 
-System.LoadAtlasFromFile: "atlasdemo-map6" 
+System.SaveAtlasToFile: "atlasdemo-test-2-postloc" 
+System.LoadAtlasFromFile: "atlasdemo-test-2" 
 
 # Right Camera calibration and distortion parameters (OpenCV)
 Camera1.fx: 607.503

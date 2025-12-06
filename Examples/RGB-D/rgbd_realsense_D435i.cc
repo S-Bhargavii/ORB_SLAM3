@@ -100,18 +100,20 @@ static rs2_option get_sensor_option(const rs2::sensor& sensor)
 
 int main(int argc, char **argv) {
 
-    if (argc < 3 || argc > 4) {
+    if (argc < 4 || argc > 5) {
         cerr << endl
-             << "Usage: ./mono_inertial_realsense_D435i path_to_vocabulary path_to_settings (trajectory_file_name)"
+             << "Usage: ./mono_inertial_realsense_D435i "
+             << "path_to_vocabulary path_to_settings (loc|map) (trajectory_file_name)"
              << endl;
         return 1;
     }
     int start_frame_count = 0;
+    string modeStr = argv[3];
 
     string file_name;
     bool bFileName = false;
 
-    if (argc == 4) {
+    if (argc == 5) {
         file_name = string(argv[argc - 1]);
         bFileName = true;
     }
@@ -299,9 +301,23 @@ int main(int argc, char **argv) {
     double t_track = 0.f;
     rs2::frameset fs;
 
-    // to set localisation mode, uncomment below line 
-    // SLAM.ActivateLocalizationMode();
-    bool isLocalizationMode = SLAM.mbActivateLocalizationMode; 
+    // set localiastion mode
+    bool isLocalizationMode = false;
+
+    if (modeStr == "loc") {
+        SLAM.ActivateLocalizationMode();
+        isLocalizationMode = true;
+        cout << "Running in LOCALISATION mode." << endl;
+
+    } else if (modeStr == "map") {
+        isLocalizationMode = false;
+        cout << "Running in MAPPING mode." << endl;
+
+    } else {
+        cerr << "Invalid mode: " << modeStr << endl;
+        cerr << "Mode must be either 'loc' or 'map'." << endl;
+        return 1;
+    }
 
     while (b_continue_session && !SLAM.isShutDown())
     {   
