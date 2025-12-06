@@ -1,15 +1,12 @@
 # ORB-SLAM3 on NVIDIA Jetson Xavier NX
 
-This repository documents the complete setup and installation process for running **ORB-SLAM3** with an **Intel RealSense camera** on the **NVIDIA Jetson Xavier NX** platform.
+This readme documents the complete setup, installation process and steps for running **ORB-SLAM3** with an **Intel RealSense camera** on the **NVIDIA Jetson Xavier NX** platform.
 
-The implementation in this repository is based on the official **ORB-SLAM3** codebase provided by the **UZ-SLAMLab**.  
-Minor modifications and bug fixes were applied to improve stability and compatibility with the NVIDIA Jetson platform.
-<br>**Official ORB-SLAM3 repository:**  
-https://github.com/UZ-SLAMLab/ORB_SLAM3
+The implementation in this repository is based on the official **ORB-SLAM3** codebase provided by the **UZ-SLAMLab**. Minor modifications and bug fixes were applied to improve stability and compatibility with the NVIDIA Jetson platform.
+<br>**Official ORB-SLAM3 repository:**  https://github.com/UZ-SLAMLab/ORB_SLAM3
 
-The Jetson system setup and dependency installation were guided by the following reference:
-<br>**Jetson setup and ORB-SLAM Installation reference:**  
-https://nemo.cool/1160.html
+The installation was guided by the following reference:
+<br>**Jetson setup and ORB-SLAM Installation reference:**  https://nemo.cool/1160.html
 
 ---
 ## System Overview
@@ -180,3 +177,92 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14
 make -j2
 ```
+
+----
+
+## Running the ORB-SLAM3 
+### Mapping the Environment
+
+To perform map creation, ensure that the system runs in **mapping mode** by disabling atlas loading and enabling atlas saving in the ORB-SLAM3 configuration file.
+
+1. Open the RGB-D RealSense configuration file:
+   [https://github.com/S-Bhargavii/ORB_SLAM3/blob/master/Examples/RGB-D/RealSense_D435i.yaml](https://github.com/S-Bhargavii/ORB_SLAM3/blob/master/Examples/RGB-D/RealSense_D435i.yaml)
+
+2. Comment out the `System.LoadAtlasFromFile` parameter.
+
+3. Specify the desired output map filename under the `System.SaveAtlasToFile` parameter.
+
+After updating the configuration file, run the RGB-D RealSense executable compiled from:
+[https://github.com/S-Bhargavii/ORB_SLAM3/blob/master/Examples/RGB-D/rgbd_realsense_D435i.cc](https://github.com/S-Bhargavii/ORB_SLAM3/blob/master/Examples/RGB-D/rgbd_realsense_D435i.cc)
+
+Execute the following command from the root of the ORB-SLAM3 repository:
+
+```bash
+./Examples/RGB-D/rgbd_realsense_D435i \
+/path/to/ORBvoc.txt \
+/path/to/RealSense_D435i.yaml \
+map
+```
+
+Replace the paths with the correct locations in your system. During execution, move the camera through the environment to build the map. Once mapping is complete, close the application to save the generated atlas file.
+
+
+### Running Localization in the Environment
+
+To run **localization-only mode** using a previously generated map:
+
+1. Open the same configuration file:
+   `Examples/RGB-D/RealSense_D435i.yaml`
+
+2. Set the `System.LoadAtlasFromFile` parameter to the path of the saved atlas file.
+
+3. Comment out or disable the `System.SaveAtlasToFile` parameter to prevent overwriting the existing map or give it another name.
+
+With the configuration updated, execute the same RGB-D RealSense binary:
+
+```bash
+./Examples/RGB-D/rgbd_realsense_D435i \
+/path/to/ORBvoc.txt \
+/path/to/RealSense_D435i.yaml \
+loc
+```
+
+In localization mode, the system loads the prebuilt map and estimates the camera pose in real time without modifying the map. This mode is used for tracking the camera within a known environment.
+
+### Running the MQTT Client for Backend Communication
+
+The MQTT client is implemented as a Python script that continuously listens for control commands on the topic `/commands/jetson_id` and publishes estimated camera poses on `/pose/jetson_id`.
+
+#### Setup Instructions
+
+Install Python and the required MQTT library:
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-pip
+pip3 install paho-mqtt
+```
+
+#### Running the MQTT Client
+
+Before running the script, update the `MQTT_BROKER` variable in the client script to match the IP address of the machine running the MQTT broker:
+
+[https://github.com/S-Bhargavii/ORB_SLAM3/blob/master/client.py](https://github.com/S-Bhargavii/ORB_SLAM3/blob/master/client.py)
+
+> **Note:** The Jetson device and the MQTT broker must be reachable on the same network (or subnet) for communication to work.
+
+Once configured, start the MQTT client by running:
+
+```bash
+cd ORB_SLAM3
+python3 client.py
+```
+
+When running, the client will:
+
+* Listen for incoming MQTT commands from the backend
+* Launch or shut down ORB-SLAM3 in localisation mode based on received commands
+* Publish real-time pose updates to the designated MQTT topic
+
+
+
