@@ -177,6 +177,7 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14
 make -j2
 ```
+To build in the future, run `./build.sh`
 
 ----
 
