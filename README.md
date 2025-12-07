@@ -6,7 +6,7 @@ The implementation in this repository is based on the official **ORB-SLAM3** cod
 <br>**Official ORB-SLAM3 repository:**  https://github.com/UZ-SLAMLab/ORB_SLAM3
 
 The installation was guided by the following reference:
-<br>**Jetson setup and ORB-SLAM Installation reference:**  https://nemo.cool/1160.html
+<br>**Jetson setup and ORB-SLAM3 Installation reference:**  https://nemo.cool/1160.html
 
 ---
 ## System Overview
