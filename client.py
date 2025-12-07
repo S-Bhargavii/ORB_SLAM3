@@ -59,8 +59,8 @@ def on_message(client, userdata, msg):
                 print("Starting ORB-SLAM3...")
                 slam_process = subprocess.Popen(
                     ["./Examples/RGB-D/rgbd_realsense_D435i",
-                     "/home/bhargavi/ORB_SLAM3/Vocabulary/ORBvoc.txt",
-                     "/home/bhargavi/ORB_SLAM3/Examples/RGB-D/RealSense_D435i.yaml",
+                     "./Vocabulary/ORBvoc.txt",
+                     "./Examples/RGB-D/RealSense_D435i.yaml",
                      "loc"],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT
